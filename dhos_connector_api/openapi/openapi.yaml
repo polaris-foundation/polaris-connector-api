@@ -1,0 +1,436 @@
+openapi: 3.0.3
+info:
+  description: The DHOS Connector API is responsible for integration between DHOS
+    and external sources of information.
+  title: DHOS Connector API
+  version: 1.0.0
+paths:
+  /running:
+    get:
+      summary: Verify service is running
+      description: Verifies that the service is running. Used for monitoring in kubernetes.
+      tags:
+      - monitoring
+      responses:
+        '200':
+          description: If we respond, we are running
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  running:
+                    type: boolean
+                    example: true
+      operationId: flask_batteries_included.blueprint_monitoring.app_running
+  /version:
+    get:
+      summary: Get version information
+      description: Get the version number, circleci build number, and git hash.
+      tags:
+      - monitoring
+      responses:
+        '200':
+          description: Version numbers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  circle:
+                    type: string
+                    example: '1234'
+                  hash:
+                    type: string
+                    example: 366c204
+      operationId: flask_batteries_included.blueprint_monitoring.app_version
+  /dhos/v1/message:
+    post:
+      summary: Submit a new message
+      description: Submit a new HL7 message to the platform. The message will be processed
+        asynchronously, but ACKed synchronously.
+      tags:
+      - message
+      requestBody:
+        description: JSON body containing base64-encoded HL7 message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+              x-body-name: message_details
+      responses:
+        '200':
+          description: Message response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.create_and_process_message
+      security:
+      - bearerAuth: []
+  /dhos/v1/message/{message_uuid}:
+    patch:
+      summary: Update a message
+      description: Marks an existing message as processed
+      tags:
+      - message
+      parameters:
+      - in: path
+        name: message_uuid
+        required: true
+        description: UUID for message
+        schema:
+          type: string
+          example: 2c4f1d24-2952-4d4e-b1d1-3637e33cc161
+      requestBody:
+        description: JSON body containing base64-encoded HL7 message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageUpdate'
+              x-body-name: update_details
+      responses:
+        '204':
+          description: Successful update
+        default:
+          description: Error, e.g. 400 Bad Request, 404 Not Found, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.update_message
+      security:
+      - bearerAuth: []
+    get:
+      summary: Get a message by UUID
+      description: Returns a single message with the specified UUID or error 404 if
+        there is no such message
+      tags:
+      - message
+      parameters:
+      - in: path
+        name: message_uuid
+        required: true
+        description: UUID for message
+        schema:
+          type: string
+          example: 2c4f1d24-2952-4d4e-b1d1-3637e33cc161
+      responses:
+        '200':
+          description: Message response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request, 404 Not Found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.get_hl7_message
+      security:
+      - bearerAuth: []
+  /dhos/v1/oru_message:
+    post:
+      summary: Generate an ORU message
+      description: Generates an ORU message based on the provided data
+      tags:
+      - message
+      requestBody:
+        description: JSON body containing process_obs_set action with patient, clinician,
+          encounter, obs_set data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessObservationSet'
+      responses:
+        '204':
+          description: Successful generation of ORU
+        default:
+          description: Error, e.g. 400 Bad Request, 503 Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.create_oru_message
+      security:
+      - bearerAuth: []
+  /dhos/v1/message/search/{message_control_id}:
+    get:
+      summary: Get a message by message control id
+      description: Returns a list of messages with the specified message control id.
+        If there are no matching messages the call is successful and the list is empty.
+      tags:
+      - message
+      parameters:
+      - in: path
+        name: message_control_id
+        required: true
+        description: Message control ID
+        schema:
+          type: string
+          example: Q548420607T549582984A1096
+      responses:
+        '200':
+          description: An array with zero or more matching messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.get_hl7_message_by_message_control_id
+      security:
+      - bearerAuth: []
+  /dhos/v1/message/search:
+    get:
+      summary: Get a message by identifier
+      description: Returns a list of messages with the specified identifier. If there
+        are no matching messages the call is successful and the list is empty.
+      tags:
+      - message
+      parameters:
+      - name: identifier_type
+        in: query
+        required: true
+        example: MRN
+        schema:
+          type: string
+      - name: identifier
+        in: query
+        example: 1112225
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: An array with zero or more matching messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageResponse'
+        default:
+          description: Error, e.g. 400 Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.get_hl7_message_by_identifier
+      security:
+      - bearerAuth: []
+  /dhos/v1/cda_message:
+    post:
+      summary: Forward an HL7 v3 CDA message to trust
+      description: Creates a CDA message and attempts to forward it to the Trust.
+        If forwarding fails the message is posted to the failed request queue to be
+        retried later.
+      tags:
+      - message
+      requestBody:
+        description: JSON body containing XML HL7 v3 CDA message
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CDAMessageRequest'
+      responses:
+        '201':
+          description: Message created successfully
+        default:
+          description: Error, e.g. 400 Bad Request, 501 Not configured for this trust
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      operationId: dhos_connector_api.blueprint_api.create_cda_message
+      security:
+      - bearerAuth: []
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+          description: HTTP response code
+          example: 404
+        message:
+          type: string
+          description: Message attached to response
+          example: Not Found
+      required:
+      - code
+      description: An error response in json format
+    MessageRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          example: HL7v2
+          enum:
+          - HL7v2
+        body:
+          type: string
+          description: Base64 encoded message
+          example: TVNIfF5+XFxcJnxjMDQ4MXxPWE9OfE9YT05fVElFX0FEVHxPWE9OfDIwMTcwNzMxMTQxMzQ4fHxBRFReQTAxfFE1NDkyOTE2ODJUNTUwNDU0MDU5WDE4MzkxQTEwOTZ8UHwyLjN8fHx8fHw4ODU5LzFcbkVWTnxBMDF8MjAxNzA3MzExNDEzMDB8fHxSQkZUSElSS0VMTFMyXlRoaXJrZWxsXlN0ZXBoZW5eXl5eXl5cIlwiXlBSU05MXl5eT1JHRFJeXCJcIlxuUElEfDF8MTA1MzIzODBeXl5OT0MtTVJOXk1STl5cIlwifDEwNTMyMzgwXl5eTk9DLU1STl5NUk5eXCJcInx8WlpaRURVQ0FUSU9OXlNURVBIRU5eXl5eXkNVUlJFTlR8fDE5ODIxMTAzfDF8fFwiXCJ8Q2h1cmNoaWxsIEhvc3BpdGFsXk9sZCBSb2FkXk9YRk9SRF5cIlwiXk9YMyA3TEVeR0JSXkhPTUVeSGVhZGluZ3Rvbl5cIlwiXl5eXl5eXl5cIlwifHx8fFwiXCJ8XCJcInxcIlwifDkwNDc4NTQ4OF5eXk5PQy1FbmNudHIgTnVtYmVyXkZJTk5CUl5cIlwifHx8fEN8fFwiXCJ8fFwiXCJ8XCJcInxcIlwifHxcIlwiXG5QRDF8fHxKRVJJQ0hPIEhFQUxUSCBDRU5UUkUgKEtFQVJMRVkpXl5LODQwMjZ8Rzg0MDQyMzFeQ0hJVkVSU15BTkRZXkFCRFVTXl5eXlwiXCJeRVhUSURcblpQSXwxfHx8fHx8fHxcIlwifEc4NDA0MjMxXkNISVZFUlNeQU5EWV5BQkRVU3x8XCJcInxcIlwifFwiXCJ8XCJcInx8fHx8fHxcIlwiXG5QVjF8MXxJTlBBVElFTlR8Tk9DLVdhcmQgQl5EYXkgUm9vbV5DaGFpciA2Xk5PQ15eQkVEXk11c2N8MjJ8fFwiXCJeXCJcIl5cIlwiXlwiXCJeXl5cIlwifEMxNTI0OTcwXkJ1cmdlXlBldGVyXkRlbmlzXl5Ncl5eXk5IU0NPTlNVTFROQlJeUFJTTkxeXl5OT05HUF5cIlwifjMzMzc5ODEwMzAzN15CdXJnZV5QZXRlcl5EZW5pc15eTXJeXl5EUk5CUl5QUlNOTF5eXk9SR0RSXlwiXCJ8dGVzdGNvbnN1bHRhbnReVGVzdF5UZXN0Xl5eXl5eXCJcIl5QUlNOTF5eXk9SR0RSXlwiXCJ8fDExMHxcIlwifFwiXCJ8XCJcInwxOXxcIlwifFwiXCJ8fElOUEFUSUVOVHw5MDkxMjc4MDVeXlwiXCJeTk9DLUF0dGVuZGFuY2VeVklTSVRJRHxcIlwifHxcIlwifHx8fHx8fHx8fHx8fHxcIlwifFwiXCJ8XCJcInxOT0N8fEFDVElWRXx8fDIwMTcwNzMxMTQxMzAwXG5QVjJ8fDF8fHx8fFwiXCJ8fDIwMTcwNzMxMDAwMDAwfHx8fFwiXCJ8fHx8fHx8fFwiXCJ8XCJcInxeXjY0Nzg0Mw==
+      required:
+      - body
+      - type
+      title: Message request
+    MessageUpdate:
+      type: object
+      properties:
+        is_processed:
+          type: boolean
+          example: true
+          description: Set when the message has been processed
+      required:
+      - is_processed
+      title: Message update
+    CDAMessageRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          example: HL7v3CDA
+          enum:
+          - HL7v3CDA
+        content:
+          type: string
+          description: HL7 v3 CDA message (XML string)
+      required:
+      - content
+      - type
+      title: Message request
+      additionalProperties: true
+    MessageResponse:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Universally unique identifier for message
+          example: 2c4f1d24-2952-4d4e-b1d1-3637e33cc161
+        type:
+          type: string
+          example: HL7v2
+          enum:
+          - HL7v2
+        body:
+          type: string
+          description: Base64 encoded response
+          example: TVNIfF5+XFxcJnxjMDQ4MXxPWE9OfE9YT05fVElFX0FEVHxPWE9OfDIwMTcwNzMxMTQxMzQ4fHxBRFReQTAxfFE1NDkyOTE2ODJUNTUwNDU0MDU5WDE4MzkxQTEwOTZ8UHwyLjN8fHx8fHw4ODU5LzFcbkVWTnxBMDF8MjAxNzA3MzExNDEzMDB8fHxSQkZUSElSS0VMTFMyXlRoaXJrZWxsXlN0ZXBoZW5eXl5eXl5cIlwiXlBSU05MXl5eT1JHRFJeXCJcIlxuUElEfDF8MTA1MzIzODBeXl5OT0MtTVJOXk1STl5cIlwifDEwNTMyMzgwXl5eTk9DLU1STl5NUk5eXCJcInx8WlpaRURVQ0FUSU9OXlNURVBIRU5eXl5eXkNVUlJFTlR8fDE5ODIxMTAzfDF8fFwiXCJ8Q2h1cmNoaWxsIEhvc3BpdGFsXk9sZCBSb2FkXk9YRk9SRF5cIlwiXk9YMyA3TEVeR0JSXkhPTUVeSGVhZGluZ3Rvbl5cIlwiXl5eXl5eXl5cIlwifHx8fFwiXCJ8XCJcInxcIlwifDkwNDc4NTQ4OF5eXk5PQy1FbmNudHIgTnVtYmVyXkZJTk5CUl5cIlwifHx8fEN8fFwiXCJ8fFwiXCJ8XCJcInxcIlwifHxcIlwiXG5QRDF8fHxKRVJJQ0hPIEhFQUxUSCBDRU5UUkUgKEtFQVJMRVkpXl5LODQwMjZ8Rzg0MDQyMzFeQ0hJVkVSU15BTkRZXkFCRFVTXl5eXlwiXCJeRVhUSURcblpQSXwxfHx8fHx8fHxcIlwifEc4NDA0MjMxXkNISVZFUlNeQU5EWV5BQkRVU3x8XCJcInxcIlwifFwiXCJ8XCJcInx8fHx8fHxcIlwiXG5QVjF8MXxJTlBBVElFTlR8Tk9DLVdhcmQgQl5EYXkgUm9vbV5DaGFpciA2Xk5PQ15eQkVEXk11c2N8MjJ8fFwiXCJeXCJcIl5cIlwiXlwiXCJeXl5cIlwifEMxNTI0OTcwXkJ1cmdlXlBldGVyXkRlbmlzXl5Ncl5eXk5IU0NPTlNVTFROQlJeUFJTTkxeXl5OT05HUF5cIlwifjMzMzc5ODEwMzAzN15CdXJnZV5QZXRlcl5EZW5pc15eTXJeXl5EUk5CUl5QUlNOTF5eXk9SR0RSXlwiXCJ8dGVzdGNvbnN1bHRhbnReVGVzdF5UZXN0Xl5eXl5eXCJcIl5QUlNOTF5eXk9SR0RSXlwiXCJ8fDExMHxcIlwifFwiXCJ8XCJcInwxOXxcIlwifFwiXCJ8fElOUEFUSUVOVHw5MDkxMjc4MDVeXlwiXCJeTk9DLUF0dGVuZGFuY2VeVklTSVRJRHxcIlwifHxcIlwifHx8fHx8fHx8fHx8fHxcIlwifFwiXCJ8XCJcInxOT0N8fEFDVElWRXx8fDIwMTcwNzMxMTQxMzAwXG5QVjJ8fDF8fHx8fFwiXCJ8fDIwMTcwNzMxMDAwMDAwfHx8fFwiXCJ8fHx8fHx8fFwiXCJ8XCJcInxeXjY0Nzg0Mw==
+      required:
+      - body
+      - type
+      - uuid
+      title: Message response
+    MessageUUID:
+      type: object
+      properties:
+        message_uuid:
+          type: string
+          description: UUID for message
+          example: 2c4f1d24-2952-4d4e-b1d1-3637e33cc161
+      required:
+      - message_uuid
+      title: Message UUID
+    MessageControlId:
+      type: object
+      properties:
+        message_control_id:
+          type: string
+          description: Message control ID
+          example: Q548420607T549582984A1096
+      required:
+      - message_control_id
+      title: Message Control ID
+    ObservationData:
+      type: object
+      properties:
+        clinician:
+          type: object
+          description: Clinician who made the observations
+        encounter:
+          type: object
+          description: Encounter details
+        observation_set:
+          type: object
+          description: Observation set details
+        patient:
+          type: object
+          description: Patient name, address, identity etc.
+      required:
+      - encounter
+      - observation_set
+      - patient
+      additionalProperties: true
+    ObservationAction:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/ObservationData'
+        name:
+          type: string
+          description: The action to be performed
+          example: process_observation_set
+      required:
+      - data
+      - name
+    ProcessObservationSet:
+      type: object
+      properties:
+        actions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ObservationAction'
+      required:
+      - actions
+      title: Process Observation Set Actions
+  responses:
+    BadRequest:
+      description: Bad or malformed request was received
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: The specified resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ServiceUnavailable:
+      description: Service or dependent resource not available
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

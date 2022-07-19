@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" SOAP-ENV:encodingStyle="http://www.w3.org/2001/12/soap-encoding">
+    <SOAP-ENV:Body xmlns:m="http://ws.connectors.connect.mirth.com/">
+        <m:acceptMessageResponse>
+            <m:return>ok</m:return>
+        </m:acceptMessageResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

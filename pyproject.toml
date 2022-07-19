@@ -1,0 +1,78 @@
+[tool.poetry]
+name = "dhos-connector-api"
+version = "0.0.1"
+description = "DHOS Connector API"
+authors = ["Adam Romano <adam.romano@sensynehealth.com>"]
+keywords = ["Swagger", "Connector", "HL7"]
+repository = "https://github.com/draysontechnologies/dhos-connector-api"
+
+[[tool.poetry.source]]
+name = "sensynehealth"
+url = "https://pypi.fury.io/sensynehealth/"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+cachetools = "5.*"
+draymed = "2.*"
+flask-batteries-included = {version = "3.*", extras = ["pgsql", "apispec"]}
+hl7 = "0.4.1" # Pinned because of minor but breaking changes in 0.4.2
+jsonschema = "3.*" # Pinned because of https://github.com/zalando/connexion/issues/1430
+kombu-batteries-included = "1.*"
+she-logging = "1.*"
+zeep = "3.*"
+
+[tool.poetry.dev-dependencies]
+bandit = "*"
+black = "*"
+coloredlogs = "*"
+coverage = "*"
+isort = "*"
+mock = "*"
+mypy = "*"
+pytest = "*"
+pytest-dhos = {version = "*", extras=["fbi"]}
+pytest-flask = "*"
+pytest-freezegun = "*"
+pytest-mock = "*"
+requests_mock = "*"
+sadisplay = "*"
+safety = "*"
+tox = "*"
+types-cachetools = "*"
+types-mock = "*"
+types-pytz = "*"
+types-PyYAML = "*"
+types-requests = "*"
+types-waitress = "*"
+
+[tool.mypy]
+namespace_packages=true
+ignore_missing_imports=false
+disallow_untyped_defs=true
+
+[[tool.mypy.overrides]]
+module = [
+    "requests_mock",
+    "pytest",
+    "environs",
+    "jose",
+    "connexion",
+    "hl7",
+    "pytest_mock",
+    "apispec.*",
+    "apispec_webframeworks.*",
+    "sadisplay",
+    "sqlalchemy.*",
+    "flask_sqlalchemy",
+    "dhosredis",
+    "zeep"
+]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+known_third_party = ["alembic", "apispec", "apispec_webframeworks", "assertpy", "behave", "click", "clients", "connexion", "environs", "flask", "flask_batteries_included", "helpers", "jose", "marshmallow", "pytest", "reporting", "reportportal_behave", "requests", "sadisplay", "she_logging", "sqlalchemy", "waitress", "yaml"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]

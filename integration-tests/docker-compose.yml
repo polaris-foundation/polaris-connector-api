@@ -1,0 +1,141 @@
+x-environment:
+  &COMMON_ENVIRONMENT
+  ENVIRONMENT: DEVELOPMENT
+  ALLOW_DROP_DATA: "true"
+  PROXY_URL: http://localhost
+  HS_ISSUER: http://localhost/
+  HS_KEY: secret
+  REDIS_INSTALLED: "False"
+  RABBITMQ_HOST: rabbitmq
+  RABBITMQ_USERNAME: guest
+  RABBITMQ_PASSWORD: guest
+  RABBITMQ_NOENCRYPT: "true"
+  DATABASE_HOST: dhos-connector-api-db
+  DATABASE_PORT: 5432
+  DATABASE_USER: dhos-connector-api
+  DATABASE_SU_PASSWORD: dhos-connector-api
+  DATABASE_PASSWORD: dhos-connector-api
+  DATABASE_NAME: dhos-connector-api
+  LOG_LEVEL: DEBUG
+  LOG_FORMAT: COLOUR
+  SERVER_TIMEZONE: UTC
+  EPR_SERVICE_ADAPTER_HS_KEY: secretepr
+  EPR_SERVICE_ADAPTER_ISSUER: http://wiremock:8080/
+  EPR_SERVICE_ADAPTER_URL_BASE: http://wiremock:8080/eprsa
+  MIRTH_HOST_URL_BASE: http://wiremock:8080/services/Mirth
+  DHOS_CONNECTOR_API_HOST: http://dhos-connector-api:5000
+  DHOS_TRUSTOMER_API_HOST: http://wiremock:8080/dhos-trustomer
+  CUSTOMER_CODE: inttests
+  POLARIS_API_KEY: inttestsecret
+  MOCK_TRUSTOMER_CONFIG: >-
+    {
+      "send_config": {
+        "generate_oru_messages": true,
+        "oxygen_masks": [
+          {
+            "code": "RA",
+            "id": "roomAir",
+            "name": "Room Air"
+          }
+        ]
+      },
+      "hl7_config": {
+        "outgoing_processing_id": "P",
+        "outgoing_receiving_application": "TRUST_TIE_ADT",
+        "outgoing_receiving_facility": "TRUST",
+        "outgoing_sending_application": "DHOS",
+        "outgoing_sending_facility": "SENSYNE",
+        "outgoing_timestamp_format": "%Y%m%d%H%M%S.%L%z"
+      }
+    }
+
+services:
+  dhos-connector-integration-tests:
+    container_name: "dhos-connector-integration-tests"
+    build:
+      context: .
+      args:
+        - GEMFURY_DOWNLOAD_KEY
+    environment:
+      <<: *COMMON_ENVIRONMENT
+      SYSTEM_JWT_SCOPE: "read:hl7_message write:hl7_message"
+      BEHAVE_ARGS: ${BEHAVE_ARGS:-}
+      REPORT_PORTAL_URL: ${REPORT_PORTAL_URL:-}
+      REPORT_PORTAL_TOKEN: ${REPORT_PORTAL_TOKEN:-}
+      REPORT_PORTAL_PROJECT: ${REPORT_PORTAL_PROJECT:-}
+      ENVIRONMENT: ${ENVIRONMENT:-}
+      RELEASE: ${RELEASE:-}
+    command: >
+      bash -c "behave --no-capture --no-logcapture ${BEHAVE_ARGS:-}"
+    depends_on:
+      "dhos-connector-api":
+        condition: service_healthy
+      "rabbitmq":
+        condition: service_healthy
+      "wiremock":
+        condition: service_healthy
+
+  dhos-connector-api:
+    container_name: "dhos-connector-api"
+    build:
+      context: ../
+      args:
+        - GEMFURY_DOWNLOAD_KEY
+    environment:
+      <<: *COMMON_ENVIRONMENT
+      AUTH0_AUDIENCE: http://localhost/
+      MOCK_EPR_SERVICE_ADAPTER_SCOPE: "read:hl7_message write:hl7_message"
+    command: >
+      bash -c "flask db upgrade && python -m dhos_connector_api"
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: curl -f http://localhost:5000/running || false
+      interval: 3s
+      retries: 40
+      start_period: 10s
+    depends_on:
+      "dhos-connector-api-db":
+        condition: service_healthy
+      "rabbitmq":
+        condition: service_healthy
+      "wiremock":
+        condition: service_healthy
+
+  dhos-connector-api-db:
+    container_name: "dhos-connector-api-db"
+    image: docker.io/postgres
+    environment:
+      <<: *COMMON_ENVIRONMENT
+      POSTGRES_USER: dhos-connector-api
+      POSTGRES_PASSWORD: dhos-connector-api
+    ports:
+      - "5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER}" ]
+      interval: 2s
+      timeout: 5s
+      retries: 20
+
+  rabbitmq:
+    container_name: "rabbitmq"
+    image: docker.io/rabbitmq:3-management-alpine
+    healthcheck:
+      test: rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  wiremock:
+    container_name: "wiremock"
+    image: rodolpheche/wiremock:2.27.2
+    healthcheck:
+      test: "curl --location --request POST 'http://localhost:8080/__admin/mappings' || false"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s

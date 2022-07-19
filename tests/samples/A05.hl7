@@ -1,0 +1,10 @@
+MSH|^~\&|c0481|OXON|OXON_TIE_ADT|OXON|20170620154250||ADT^A05|Q545120885T546283262X16645A1096|P|2.3||||||8859/1
+EVN|A05|20170620154250|||DH044901^Hussain (AMS)^Didar^^^Cerner AMS^^^NHSORGCD^PRSNL^^^EXTID^""
+PID|1|90532208^^^NOC-MRN^MRN^""|90532208^^^NOC-MRN^MRN^""||ZZZTEST^ELEPHANT^^^MS^^CURRENT||19900101|2||""|No Fixed Abode^^^""^ZZ99 3WZ^""^HOME^^""^^^^^^^^""||03216549873^HOME~03215649875^MOBILE||""|""|""|904785256^^^NOC-Encntr Number^FINNBR^""||||P||""||""|""|""||""
+PD1|||19 BEAUMONT STREET^^K84016|G7101159^32 KISPEJXO QOVIIO^Djjzic Zrqo^^^^^""^EXTID
+ZPI|1||||||||""|G7101159^19 BEAUMONT STREET^Pooled List||""|""|""|""|||||||""
+PV1|1|WAITLIST|NOC-OP Referral^""^""^NOC^^AMB^NOC-Referral|""||""^""^""^""^^^""||||120|""|""|""|""|""|""||OPREFERRAL|909127573^^""^NOC-Attendance^VISITID|""||""||||||||||||||""|""|""|NOC||PREADMIT
+PV2||1|||||""||||||""||||||||""|""|^^647843
+ZVI|""|||||""|||""|""||""||""|20170620154247
+OBX|1|CD|PERSONUKRES||Yes
+ZU1|||||||||||||3||20170619000000

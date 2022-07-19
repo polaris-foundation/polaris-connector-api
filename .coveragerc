@@ -1,0 +1,18 @@
+[paths]
+source =
+    dhos_connector_api/*
+
+[report]
+
+omit =
+    **/__init__.py
+    **/__main__.py
+    dhos_connector_api/autoapp.py
+    dhos_connector_api/app.py
+    dhos_connector_api/config.py
+    dhos_connector_api/blueprint_development/*
+
+fail_under = 95
+
+show_missing = true
+skip_covered = true

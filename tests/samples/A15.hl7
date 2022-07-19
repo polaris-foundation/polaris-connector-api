@@ -1,0 +1,7 @@
+MSH|^~\&|c0481|OXON|OXON_TIE_ADT|OXON|20170712104138||ADT^A15|Q547341333T548503710X17472A1096|P|2.3||||||8859/1
+EVN|A15|20170712103800|||^Johnson^Michael^^^^^^^PRSNL
+PID|1|90532205^^^NOC-MRN^MRN^""|90532205^^^NOC-MRN^MRN^""||ZZZJOHNSON^MICHAEL^^^MR^^CURRENT||19910715|1||""|Churchill Hospital^Old Road^OXFORD^""^OX3 7LE^GBR^HOME^Headington^""^^^^^^^^""||01234567890^HOME~01234567809^MOBILE||""|""|""|904785367^^^NOC-Encntr Number^FINNBR^""||||H||""||""|""|""||""
+PD1|||JERICHO HEALTH CENTRE (KEARLEY)^^K84026|G8404231^CHIVERS^ANDY^ABDUS^^^^""^EXTID
+PV1|1|INPATIENT|J-ED^""^""^John Radcliffe^^AMB^J-Main|21||J-ED^""^""^John Radcliffe^^AMB^J-Main|315308412040^Bowen^Jordan^Scott Tecton^^^^^DRNBR^PRSNL^^^ORGDR^""~C6134820^Bowen^Jordan^Scott Tecton^^^^^NHSCONSULTNBR^PRSNL^^^NONGP^""|315308412040^Bowen^Jordan^Scott Tecton^^^^^DRNBR^PRSNL^^^ORGDR^""~C6134820^Bowen^Jordan^Scott Tecton^^^^^NHSCONSULTNBR^PRSNL^^^NONGP^""||300|""|""|1|19|""|""||INPATIENT|909127684^^""^NOC-Attendance^VISITID|""||""||||||||||||||""|""|""|John Radcliffe||ACTIVE|J-WD 5B AAU^""^""^John Radcliffe^^^J-Main||20170712102000
+PV2||1|^UNWELL||||""||||||""||||||||""|""|^^857288
+ZVI|""|||||430|||1|""||""||""||INPATIENT|430|300|1|""|""|""|20170712104000||""|""|315308412040^Bowen^Jordan^Scott Tecton^^^^^DRNBR^PRSNL^^^ORGDR^""

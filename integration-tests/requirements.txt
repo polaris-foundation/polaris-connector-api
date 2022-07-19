@@ -1,0 +1,15 @@
+assertpy
+behave
+black
+environs
+faker
+hl7apy
+isort
+kombu==4.*
+mypy
+python-jose==3.*
+reportportal-behave-client==1.*
+requests
+she-data-generation
+she-logging
+types-requests
