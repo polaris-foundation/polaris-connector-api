@@ -54,8 +54,6 @@ services:
     container_name: "dhos-connector-integration-tests"
     build:
       context: .
-      args:
-        - GEMFURY_DOWNLOAD_KEY
     environment:
       <<: *COMMON_ENVIRONMENT
       SYSTEM_JWT_SCOPE: "read:hl7_message write:hl7_message"
@@ -79,8 +77,6 @@ services:
     container_name: "dhos-connector-api"
     build:
       context: ../
-      args:
-        - GEMFURY_DOWNLOAD_KEY
     environment:
       <<: *COMMON_ENVIRONMENT
       AUTH0_AUDIENCE: http://localhost/
