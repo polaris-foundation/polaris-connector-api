@@ -1,6 +1,7 @@
 assertpy
 behave
 black
+draymed
 environs
 faker
 hl7apy
@@ -10,6 +11,5 @@ mypy
 python-jose==3.*
 reportportal-behave-client==1.*
 requests
-she-data-generation
 she-logging
 types-requests

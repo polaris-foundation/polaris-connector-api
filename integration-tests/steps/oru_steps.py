@@ -6,14 +6,14 @@ from behave.runner import Context
 from clients import dhos_connector_api_client as api_client
 from faker import Faker
 from helpers import hl7
+from helpers.clinician import clinician_factory
+from helpers.encounter import encounter_factory
+from helpers.observation import observation_set_factory
+from helpers.patient import patient_factory
+from helpers.person import Sex
 from hl7apy.core import Message, Segment
 from hl7apy.exceptions import ChildNotValid
 from requests import Response
-from she_data_generation.clinician import clinician_factory
-from she_data_generation.encounter import encounter_factory
-from she_data_generation.observation import observation_set_factory
-from she_data_generation.patient import patient_factory
-from she_data_generation.person import Sex
 from she_logging import logger
 
 OBS_TYPE_TO_OBX_IDENTIFIER: Dict[str, str] = {
